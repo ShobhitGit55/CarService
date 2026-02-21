@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: url('salon.jpg') no-repeat center center fixed;
+            background-size: cover;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.6rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #a5665d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+        }
+
+            button:hover {
+                background: #a5665d;
+            }
+
+        .table-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #a5665d;
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            input, select, button {
+                font-size: 0.95rem;
+                padding: 10px;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Pagination buttons should be auto width, not full width */
+        #pagination button {
+            width: auto; /* remove full width */
+            padding: 6px 12px;
+            margin: 0 5px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #a5665d;
+            background-color: #a5665d;
+            color: white;
+            transition: background 0.3s ease;
+        }
+
+            #pagination button:hover:not(:disabled) {
+                background-color: #a5665d;
+            }
+
+            #pagination button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+        /* Page info in middle */
+        #pageInfo {
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5); /* semi-transparent */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* above everything */
+        }
+
+        /* Spinner container */
+        .spinner-container {
+            text-align: center;
+            color: #fff;
+        }
+
+        /* Spinner animation */
+        .spinner {
+            border: 8px solid rgba(213 59 59 / 30%); /* Light border */
+            border-top: 8px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px auto;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .chart-panel {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .panel-header {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        canvas {
+            width: 100% !important;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+
+<body>
+    <div class="container">
+
+        <div id="overlay">
+            <div class="spinner-container" id="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Please wait...</div>
+            </div>
+        </div>
+
+
+        <h2>Book Appointment</h2>
+
+        <input type="text" id="name" placeholder="Name">
+        <select id="service">
+            <option value="">Select Service</option>
+
+            <option value="Car Clean">Car Clean</option>
+            <option value="Washing">Washing</option>
+            <option value="Polishing">Polishing</option>
+            <option value="Smoothing">Smoothing</option>
+            <option value="InteriorCleaning">Interior Cleaning</option>
+
+        </select>
+        <select id="time">
+            <option value="">Select Time</option>
+
+        </select>
+
+        <button onclick="submitForm()">Book</button>
+
+
+
+    </div>
+
+    <script>
+
+        const API_URL = "https://script.google.com/macros/s/AKfycbygCcBz8_YO81qqargCZYLnqUVZWbGAIr7S-1g6v8ue2-BChURso-jEraBtyWEOgw0l/exec";
+        let allData = [];
+        let currentPage = 1;
+        const rowsPerPage = 3; // change this as needed
+        let totalCount = 0;
+        function loadData() {
+            const overlay = document.getElementById("overlay");
+
+                      overlay.style.display = "flex";       // show loading
+
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(data => {
+                    allData = data;           // store all appointments
+                   totalCount= data.length;
+                    currentPage = 1;          // reset to first page
+                    displayTable();           // display first page
+
+                })
+                .catch(err => console.error("Load Error:", err))
+                .finally(() => overlay.style.display = "none"); // hide loading
+        }
+
+        // Display table for current page
+        function displayTable() {
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = allData.slice(start, end);
+
+            let bookedTimes = allData.map(item => item.Time); // get all booked times
+            const select = document.getElementById("time");
+            const startTime = 9; // 09:00
+            const endTime = 20;  // 20:00
+
+            for (let h = startTime; h <= endTime; h++)
+            {
+                for (let m = 0; m < 60; m += 15) {
+                    if (h === end && m > 0) continue; // stop at 20:00 exactly
+                    let hour = h.toString().padStart(2, '0');
+                    let min = m.toString().padStart(2, '0');
+                    let time = `${hour}:${min}`;
+
+                    let option = document.createElement('option');
+                    option.value = time;
+                    option.textContent = time;
+
+                    // Disable if already booked
+                    if (bookedTimes.includes(time)) {
+                        option.disabled = true;
+                        option.textContent += " (Booked)";
+                    }
+
+                    select.appendChild(option);
+                }
+            }
+
+        }
+
+
+        // Call loadData after DOM is ready
+        document.addEventListener("DOMContentLoaded", loadData);
+        function submitForm()
+        {
+
+            overlay.style.display = "flex";   // show loading
+
+            let name = document.getElementById("name").value.trim();
+            let service = document.getElementById("service").value.trim();
+            let time = document.getElementById("time").value.trim();
+
+            if (!service || !time) {
+                overlay.style.display = "none";
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Missing Information',
+                    text: 'Please fill service and time fields',
+                    confirmButtonColor: '#f6ad55'
+                });
+                return;
+            }
+
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(data => {
+
+
+                    return fetch(API_URL, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            Name: name,
+                            Service: service,
+                            Time: time
+                        })
+                    });
+                })
+                .then(response => {
+
+                    if (!response) return;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Appointment Confirmed!',
+                        html: `
+                             <strong>Name:</strong> ${name}<br>
+                             <strong>Service:</strong> ${service}<br>
+                             <strong>Time:</strong> ${time}
+    `,
+                        background: '#f0fff4',   // light green background
+                        color: '#1a202c',
+                        confirmButtonColor: '#38a169',
+                        iconColor: '#38a169'
+                    }).then(() => {
+                        location.reload();
+                    });
+
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Something went wrong!',
+                        confirmButtonColor: '#e53e3e'
+                    });
+
+                })
+                .finally(() => {
+                    overlay.style.display = "none";   // always hide loader
+                });
+        }
+
+
+    </script>
+
+
+</body>
+</html>
