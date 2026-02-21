@@ -354,10 +354,10 @@
 
         <div class="dashboard-cards">
 
-            <div class="card">
+            <!--<div class="card">
                 <h3>All Appointment</h3>
                 <p id="allAppointment">0</p>
-            </div>
+            </div>-->
 
             <div class="card">
                 <h3>Total Appointment Today</h3>
@@ -367,6 +367,26 @@
             <div class="card">
                 <h3> Last Appointment Time</h3>
                 <p id="lastCountTime">No bookings today</p>
+            </div>
+
+            <div class="card">
+                <h3>Today Revenue</h3>
+                <p id="totalRevenue">₹0</p>
+            </div>
+
+            <div class="card">
+                <h3>Most Booked Service</h3>
+                <p id="mostBooked">-</p>
+            </div>
+
+            <div class="card">
+                <h3>Highest Revenue Service</h3>
+                <p id="highestRevenueService">-</p>
+            </div>
+
+            <div class="card">
+                <h3>Average Booking Value</h3>
+                <p id="avgBookingValue">₹0</p>
             </div>
 
 
@@ -457,13 +477,13 @@
                     tableContainer.style.display = "inline-grid-lanes"; // show table
                     pagination.style.display = "flex";    // show pagination
                     document.getElementById("totalApponintment").innerText = totalCount;
-                    document.getElementById("allAppointment").innerText = totalCount;
+                   // document.getElementById("allAppointment").innerText = totalCount;
 
 
                     chart(data);
                     chartPie(data)
                     CardsData(data)
-
+                    updateDashboard(data)
                 })
                 .catch(err => console.error("Load Error:", err))
                 .finally(() => overlay.style.display = "none"); // hide loading
@@ -599,7 +619,7 @@
             const pageData = allData.slice(start, end);
 
             let bookedTimes = allData.map(item => item.Time); // get all booked times
-           
+
 
             let table = "";
             pageData.forEach(item => {
@@ -608,25 +628,25 @@
                 const encodedMessage = encodeURIComponent(message);
 
                 table += `<tr>
-              <td>${item.Name}</td>
-              <td>${item.Service}</td>
-              <td>${item.Time}</td>
-               <td>
-            ${mobile ? `
-            <a href="https://wa.me/${mobile}?text=${encodedMessage}" 
-               target="_blank" 
-               style="text-decoration:none;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                     alt="WhatsApp" 
-                     style="width:24px; height:24px; cursor:pointer;">
-            </a>
-            ` : 'No Number'}
-        </td>
-            </tr>`;
+                  <td>${item.Name}</td>
+                  <td>${item.Service}</td>
+                  <td>${item.Time}</td>
+                   <td>
+                ${mobile ? `
+                <a href="https://wa.me/${mobile}?text=${encodedMessage}"
+                   target="_blank"
+                   style="text-decoration:none;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                         alt="WhatsApp"
+                         style="width:24px; height:24px; cursor:pointer;">
+                </a>
+                ` : 'No Number'}
+            </td>
+                </tr>`;
             });
 
             document.getElementById("tableBody").innerHTML = table;
-           
+
             renderPagination();
         }
 
@@ -686,8 +706,7 @@
             }
         }
 
-        function CardsData(data)
-        {
+        function CardsData(data) {
             debugger;
             const formattedToday =
                 String(today.getDate()).padStart(2, '0') + "-" +
@@ -718,7 +737,7 @@
             //});
 
             // 🔹 Get latest time
-           // const latestDate = new Date(Math.max(...parsedDates));
+            // const latestDate = new Date(Math.max(...parsedDates));
 
             // 🔹 Show only time
             //document.getElementById("lastCountTime").innerText =
@@ -732,6 +751,60 @@
 
         }
 
+        function updateDashboard(bookings) {
+
+            let totalRevenue = 0;
+            let serviceCount = {};
+            let serviceRevenue = {};
+
+            bookings.forEach(item => {
+
+                let serviceName = item.Service?.trim();
+                let price = servicePrices[serviceName] || 0;
+
+                totalRevenue += price;
+
+                serviceCount[serviceName] = (serviceCount[serviceName] || 0) + 1;
+                serviceRevenue[serviceName] = (serviceRevenue[serviceName] || 0) + price;
+            });
+
+            // Revenue
+            document.getElementById("totalRevenue").innerText = "₹" + totalRevenue;
+
+            // Most Booked Service
+            let mostBooked = "-";
+            if (Object.keys(serviceCount).length > 0) {
+                mostBooked = Object.keys(serviceCount)
+                    .reduce((a, b) => serviceCount[a] > serviceCount[b] ? a : b);
+
+                document.getElementById("mostBooked").innerText =
+                    mostBooked + " (" + serviceCount[mostBooked] + ")";
+            }
+
+            // Highest Revenue Service
+            let highestRevenueService = "-";
+            if (Object.keys(serviceRevenue).length > 0) {
+                highestRevenueService = Object.keys(serviceRevenue)
+                    .reduce((a, b) => serviceRevenue[a] > serviceRevenue[b] ? a : b);
+
+                document.getElementById("highestRevenueService").innerText =
+                    highestRevenueService + " (₹" + serviceRevenue[highestRevenueService] + ")";
+            }
+
+            // Average Booking Value
+            let avgValue = bookings.length > 0 ? totalRevenue / bookings.length : 0;
+
+            document.getElementById("avgBookingValue").innerText =
+                "₹" + avgValue.toFixed(0);
+        }
+
+        const servicePrices = {
+            "Car Clean": 499,
+            "Washing": 299,
+            "Polishing": 999,
+            "Smoothing": 799,
+            "InteriorCleaning": 699
+        };
     </script>
 
 
