@@ -228,6 +228,9 @@
             <option value="">Select Time</option>
 
         </select>
+        <input type="text" id="mobile" placeholder="Mobile Number">
+        <input type="text" id="email" placeholder="Email">
+
 
         <button onclick="submitForm()">Book</button>
 
@@ -306,6 +309,9 @@
             let name = document.getElementById("name").value.trim();
             let service = document.getElementById("service").value.trim();
             let time = document.getElementById("time").value.trim();
+            let mobile = document.getElementById("mobile").value.trim();
+            let email = document.getElementById("email").value.trim();
+
 
             if (!service || !time) {
                 overlay.style.display = "none";
@@ -328,7 +334,9 @@
                         body: JSON.stringify({
                             Name: name,
                             Service: service,
-                            Time: time
+                            Time: time,
+                            Mobile: mobile,
+                            Email: email
                         })
                     });
                 })

@@ -586,58 +586,47 @@
 
         // Display table for current page
         function displayTable() {
+
+            allData.sort((a, b) => {
+                const timeA = new Date(`1970-01-01T${(a.Time || "").trim()}:00`);
+                const timeB = new Date(`1970-01-01T${(b.Time || "").trim()}:00`);
+                return timeA - timeB;
+            });
+
+
             const start = (currentPage - 1) * rowsPerPage;
             const end = start + rowsPerPage;
             const pageData = allData.slice(start, end);
 
             let bookedTimes = allData.map(item => item.Time); // get all booked times
-
+           
 
             let table = "";
             pageData.forEach(item => {
+                const mobile = item.Mobile ? "91" + item.Mobile : "";
+                const message = `Hi ${item.Name}, your appointment for ${item.Service} is scheduled at ${item.Time}. Thank you!`;
+                const encodedMessage = encodeURIComponent(message);
+
                 table += `<tr>
               <td>${item.Name}</td>
               <td>${item.Service}</td>
               <td>${item.Time}</td>
-              <td>
-                <a href="https://wa.me/918860168841?text=Hi%20your%20appointment%20is%20at%20${encodeURIComponent(item.Time)}" target="_blank" style="text-decoration:none;">
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                       alt="WhatsApp" style="width:24px; height:24px;">
-                </a>
-              </td>
+               <td>
+            ${mobile ? `
+            <a href="https://wa.me/${mobile}?text=${encodedMessage}" 
+               target="_blank" 
+               style="text-decoration:none;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                     alt="WhatsApp" 
+                     style="width:24px; height:24px; cursor:pointer;">
+            </a>
+            ` : 'No Number'}
+        </td>
             </tr>`;
             });
 
             document.getElementById("tableBody").innerHTML = table;
-            //const select = document.getElementById("time");
-            //const startTime = 9; // 09:00
-            //const endTime = 20;  // 20:00
-
-            //for (let h = startTime; h <= endTime; h++)
-            //{
-            //    for (let m = 0; m < 60; m += 15) {
-            //        if (h === end && m > 0) continue; // stop at 20:00 exactly
-            //        let hour = h.toString().padStart(2, '0');
-            //        let min = m.toString().padStart(2, '0');
-            //        let time = `${hour}:${min}`;
-
-            //        let option = document.createElement('option');
-            //        option.value = time;
-            //        option.textContent = time;
-
-            //        // Disable if already booked
-            //        if (bookedTimes.includes(time)) {
-            //            option.disabled = true;
-            //            option.textContent += " (Booked)";
-            //        }
-
-            //        select.appendChild(option);
-            //    }
-            //}
-
-
-
-            //updatePageInfo();
+           
             renderPagination();
         }
 
