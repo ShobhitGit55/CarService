@@ -322,6 +322,42 @@
             .refresh-btn:hover {
                 background: #f3f3f3;
             }
+
+
+        .chart-panel {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .panel-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .chart-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .chart-card {
+            flex: 1;
+        }
+
+        .chart-title {
+            text-align: left; /* 🔥 Left side */
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .chart-box {
+            width: 100%;
+            height: 300px;
+        }
+
+
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -428,21 +464,28 @@
 
         </div>
         <div class="chart-panel">
-            <div class="panel-header">
-                Graphs
-            </div>
+           
 
             <div class="chart-row">
-                <div class="chart-box">
-                    <canvas id="sheetChart"></canvas>
+
+                <!-- Booking Chart -->
+                <div class="chart-card">
+                    <h3 class="chart-title">Total Booking</h3>
+                    <div class="chart-box">
+                        <canvas id="sheetChart"></canvas>
+                    </div>
                 </div>
 
-                <div class="chart-box">
-                    <canvas id="sheetChartPie"></canvas>
+                <!-- Revenue Chart -->
+                <div class="chart-card">
+                    <h3 class="chart-title">Total Revenue</h3>
+                    <div class="chart-box">
+                        <canvas id="revenuePieChart"></canvas>
+                    </div>
                 </div>
+
             </div>
         </div>
-
 
 
 
@@ -456,6 +499,8 @@
         const rowsPerPage = 5; // change this as needed
         let totalCount = 0;
         const today = new Date();
+        let pieChart; // global
+
 
         function loadData() {
             const overlay = document.getElementById("overlay");
@@ -481,7 +526,7 @@
 
 
                     chart(data);
-                    chartPie(data)
+                   // chartPie(data)
                     CardsData(data)
                     updateDashboard(data)
                 })
@@ -491,6 +536,7 @@
 
         function chart(data) {
             const serviceCount = {};
+
 
             data.forEach(row => {
                 const service = row.Service;
@@ -526,8 +572,16 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false, 
+                    interaction: {
+                        mode: "nearest",
+                        intersect: false
+                    },
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: false   // 🔥 hide right side label
+                        }
+                        //position: window.innerWidth < 768 ? "bottom" : "right"
                     },
                     scales: {
                         y: {
@@ -546,62 +600,62 @@
             });
         }
 
-        function chartPie(data) {
-            const serviceCount = {};
+        //function chartPie(data) {
+        //    const serviceCount = {};
 
-            data.forEach(row => {
-                const service = row.Service;
+        //    data.forEach(row => {
+        //        const service = row.Service;
 
-                if (!serviceCount[service]) {
-                    serviceCount[service] = 0;
-                }
+        //        if (!serviceCount[service]) {
+        //            serviceCount[service] = 0;
+        //        }
 
-                serviceCount[service]++;
-            });
-            const labels = Object.keys(serviceCount);
-            const values = Object.values(serviceCount);
-            const maxValue = Math.max(...values);
-            const ctx = document.getElementById('sheetChartPie').getContext('2d');
-            new Chart(ctx, {
-                type: 'pie', // change to 'pie' if you want
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Total Bookings',
-                        data: values,
-                        backgroundColor: [
-                            '#667eea',
-                            '#f6ad55',
-                            '#48bb78',
-                            '#ed64a6',
-                            '#38b2ac',
-                            '#9f7aea'
-                        ],
-                        borderRadius: 6,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            min: 0,
-                            max: maxValue,
-                            grace: 0,
-                            ticks: {
-                                stepSize: 1,
-                                autoSkip: false,
-                                precision: 0
-                            }
-                        }
-                    }
-                }
-            });
-        }
+        //        serviceCount[service]++;
+        //    });
+        //    const labels = Object.keys(serviceCount);
+        //    const values = Object.values(serviceCount);
+        //    const maxValue = Math.max(...values);
+        //    const ctx = document.getElementById('sheetChartPie').getContext('2d');
+        //    new Chart(ctx, {
+        //        type: 'pie', // change to 'pie' if you want
+        //        data: {
+        //            labels: labels,
+        //            datasets: [{
+        //                label: 'Total Bookings',
+        //                data: values,
+        //                backgroundColor: [
+        //                    '#667eea',
+        //                    '#f6ad55',
+        //                    '#48bb78',
+        //                    '#ed64a6',
+        //                    '#38b2ac',
+        //                    '#9f7aea'
+        //                ],
+        //                borderRadius: 6,
+        //                borderWidth: 1
+        //            }]
+        //        },
+        //        options: {
+        //            responsive: true,
+        //            plugins: {
+        //                legend: { display: false }
+        //            },
+        //            scales: {
+        //                y: {
+        //                    beginAtZero: true,
+        //                    min: 0,
+        //                    max: maxValue,
+        //                    grace: 0,
+        //                    ticks: {
+        //                        stepSize: 1,
+        //                        autoSkip: false,
+        //                        precision: 0
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    });
+        //}
 
 
         // Display table for current page
@@ -751,15 +805,32 @@
 
         }
 
-        function updateDashboard(bookings) {
 
+        function updateDashboard(bookings) {
+            //console.log(bookings);
             let totalRevenue = 0;
             let serviceCount = {};
             let serviceRevenue = {};
 
+            //bookings.forEach(item => {
+
+            //    let serviceName = item.Service?.trim();
+            //    let price = servicePrices[serviceName] || 0;
+
+            //    totalRevenue += price;
+
+            //    serviceCount[serviceName] = (serviceCount[serviceName] || 0) + 1;
+            //    serviceRevenue[serviceName] = (serviceRevenue[serviceName] || 0) + price;
+            //});
+
             bookings.forEach(item => {
 
-                let serviceName = item.Service?.trim();
+               // let serviceName = item.Service?.trim();
+                let serviceName = item.Service ? item.Service.trim() : null;
+
+                if (!serviceName || !servicePrices[serviceName]) return;
+                if (!serviceName) return;   // 🔥 SKIP EMPTY ROWS
+
                 let price = servicePrices[serviceName] || 0;
 
                 totalRevenue += price;
@@ -768,13 +839,13 @@
                 serviceRevenue[serviceName] = (serviceRevenue[serviceName] || 0) + price;
             });
 
-            // Revenue
+
+            // Revenue Card
             document.getElementById("totalRevenue").innerText = "₹" + totalRevenue;
 
-            // Most Booked Service
-            let mostBooked = "-";
+            // Most Booked
             if (Object.keys(serviceCount).length > 0) {
-                mostBooked = Object.keys(serviceCount)
+                let mostBooked = Object.keys(serviceCount)
                     .reduce((a, b) => serviceCount[a] > serviceCount[b] ? a : b);
 
                 document.getElementById("mostBooked").innerText =
@@ -782,20 +853,68 @@
             }
 
             // Highest Revenue Service
-            let highestRevenueService = "-";
             if (Object.keys(serviceRevenue).length > 0) {
-                highestRevenueService = Object.keys(serviceRevenue)
+                let highestRevenueService = Object.keys(serviceRevenue)
                     .reduce((a, b) => serviceRevenue[a] > serviceRevenue[b] ? a : b);
 
                 document.getElementById("highestRevenueService").innerText =
                     highestRevenueService + " (₹" + serviceRevenue[highestRevenueService] + ")";
             }
 
-            // Average Booking Value
+            // Average
             let avgValue = bookings.length > 0 ? totalRevenue / bookings.length : 0;
-
             document.getElementById("avgBookingValue").innerText =
                 "₹" + avgValue.toFixed(0);
+
+            // 🔥 Update Pie Chart
+            updatePieChart(serviceRevenue);
+        }
+
+        function updatePieChart(serviceRevenue) {
+
+            const labels = Object.keys(serviceRevenue);
+            console.log(Object.keys(serviceRevenue));
+            const data = Object.values(serviceRevenue);
+           // console.log(data)
+            const ctx = document.getElementById("revenuePieChart");
+
+            // Destroy old chart if exists
+            if (pieChart) {
+                pieChart.destroy();
+            }
+
+            pieChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,   // 🔥 YOU REMOVED THIS (needed)
+                    datasets: [{
+                        label: "Total Revenue (₹)",
+                        data: data,
+                        backgroundColor: [
+                            "#2a5298",
+                            "#1e3c72",
+                            "#4CAF50",
+                            "#FF9800",
+                            "#9C27B0"
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,  // 🔥 Important for mobile
+
+                    interaction: {
+                        mode: "nearest",
+                        intersect: false
+                    },
+
+                    plugins: {
+                        legend: {
+                               display: false   // hide legend
+                        }
+                    }
+                }
+            });
         }
 
         const servicePrices = {
