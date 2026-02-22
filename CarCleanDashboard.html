@@ -153,6 +153,7 @@
                             <th>Date</th>
                             <th>Time</th>
                             <th>Chat</th>
+                            <th>Delete</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -223,7 +224,7 @@
                 pagination.style.display = "flex";    // show pagination
                 // document.getElementById("allAppointment").innerText = totalCount;
 
-                //console.log(data)
+               // console.log(data)
                 chart(data);
                CardsData(data)
                 updateDashboard(data)
@@ -350,7 +351,7 @@
             const message = `Hi ${item.Name}, your appointment for ${item.Service} is scheduled at ${item.Time}. Thank you!`;
             const encodedMessage = encodeURIComponent(message);
 
-            table += `<tr>
+            table += `<tr data-id="${item.ID}">
                   <td>${item.Name}</td>
                   <td>${item.Service}</td>
                    <td>${item.DateTime}</td>
@@ -366,6 +367,12 @@
                 </a>
                 ` : 'No Number'}
             </td>
+            <td>
+        <button class="btn btn-danger btn-sm"
+            onclick="deleteBooking('${item.ID}')">
+            Delete
+        </button>
+    </td>
                 </tr>`;
         });
 
@@ -645,6 +652,63 @@
                         display: false   // hide legend
                     }
                 }
+            }
+        });
+    }
+
+    function deleteBooking(bookingID) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to delete this booking?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+
+                overlay.style.display = "flex"; // show spinner
+
+                fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "delete",
+                        ID: bookingID
+                    })
+                })
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: 'The booking has been deleted.',
+                                confirmButtonColor: '#667eea'
+                            });
+                            location.reload();
+                            // 🔹 Refresh table & dashboard live
+                            //loadAppointments(); // your function to fetch and render table, cards, charts
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops!',
+                                text: response.message || 'Something went wrong, try again.',
+                                confirmButtonColor: '#667eea'
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Failed to delete booking.',
+                            confirmButtonColor: '#667eea'
+                        });
+                    })
+                    .finally(() => overlay.style.display = "none");
             }
         });
     }
