@@ -56,12 +56,12 @@
     <div class="container-fluid py-4">
 
         <!-- Loading Overlay -->
-        <!--<div id="overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50" style="z-index:9999;">
+        <div id="overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-50" style="z-index:9999;">
             <div class="text-center text-white">
                 <div class="spinner-border mb-3" role="status"></div>
                 <div>Please wait dashboard loading...</div>
             </div>
-        </div>-->
+        </div>
 
         <!-- Header -->
         <div class="dashboard-header p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
@@ -84,7 +84,7 @@
 
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card card-custom text-center p-3">
-                    <h6>Last Appointment Time</h6>
+                    <h6>Today Last Appointment </h6>
                     <p id="lastCountTime">No bookings today</p>
                 </div>
             </div>
@@ -92,6 +92,27 @@
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card card-custom text-center p-3">
                     <h6>Today Revenue</h6>
+                    <p id="todayRevenue">₹0</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card card-custom text-center p-3">
+                    <h6>Todat Most Booked Service</h6>
+                    <p id="todayMostBooked">-</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card card-custom text-center p-3">
+                    <h6>Today Highest Revenue Service</h6>
+                    <p id="todayhighestRevenueService">-</p>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="card card-custom text-center p-3">
+                    <h6>Total Revenue Including Today</h6>
                     <p id="totalRevenue">₹0</p>
                 </div>
             </div>
@@ -103,12 +124,7 @@
                 </div>
             </div>
 
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="card card-custom text-center p-3">
-                    <h6>Highest Revenue Service</h6>
-                    <p id="highestRevenueService">-</p>
-                </div>
-            </div>
+
 
             <div class="col-12 col-sm-6 col-lg-3">
                 <div class="card card-custom text-center p-3">
@@ -116,6 +132,8 @@
                     <p id="avgBookingValue">₹0</p>
                 </div>
             </div>
+
+
 
         </div>
 
@@ -132,6 +150,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Service</th>
+                            <th>Date</th>
                             <th>Time</th>
                             <th>Chat</th>
                         </tr>
@@ -184,12 +203,12 @@
 
 
     function loadData() {
-       // const overlay = document.getElementById("overlay");
+       const overlay = document.getElementById("overlay");
         const tblAppointments = document.getElementById("tblAppointments");
         const pagination = document.getElementById("pagination");
 
-      // overlay.style.display = "none";       // show loading
-        tblAppointments.style.display = "inline-grid-lanes"; // hide table
+       overlay.style.display = "block";       // show loading
+        tblAppointments.style.display = "block"; // hide table
         pagination.style.display = "none";     // hide pagination
 
 
@@ -200,18 +219,22 @@
                 totalCount = data.length;
                 currentPage = 1;          // reset to first page
                 displayTable();           // display first page
-                tblAppointments.style.display = "inline-grid-lanes"; // show table
+                tblAppointments.style.display = "block"; // show table
                 pagination.style.display = "flex";    // show pagination
-                document.getElementById("totalApponintment").innerText = totalCount;
                 // document.getElementById("allAppointment").innerText = totalCount;
 
-
+                //console.log(data)
                 chart(data);
                CardsData(data)
                 updateDashboard(data)
+                updateTodayDetails(data)
+                overlay.classList.remove("d-flex"); // show
+                overlay.classList.add("d-none"); // hide
             })
             .catch(err => console.error("Load Error:", err))
-           // .finally(() => overlay.style.display = "none"); // hide loading
+            .finally(() => overlay.style.display = "none"); // hide loading
+
+
     }
 
     function chart(data) {
@@ -280,79 +303,45 @@
         });
     }
 
-    //function chartPie(data) {
-    //    const serviceCount = {};
+    function parseDateOnly(dateTimeStr) {
+        const [datePart] = dateTimeStr.split(" ");   // get only date
+        const [day, month, year] = datePart.split("-");
+        return new Date(`${year}-${month}-${day}`);
+    }
 
-    //    data.forEach(row => {
-    //        const service = row.Service;
+    function parseTimeOnly(timeStr) {
+        return new Date(`1970-01-01T${timeStr}:00`);
+    }
 
-    //        if (!serviceCount[service]) {
-    //            serviceCount[service] = 0;
-    //        }
-
-    //        serviceCount[service]++;
-    //    });
-    //    const labels = Object.keys(serviceCount);
-    //    const values = Object.values(serviceCount);
-    //    const maxValue = Math.max(...values);
-    //    const ctx = document.getElementById('sheetChartPie').getContext('2d');
-    //    new Chart(ctx, {
-    //        type: 'pie', // change to 'pie' if you want
-    //        data: {
-    //            labels: labels,
-    //            datasets: [{
-    //                label: 'Total Bookings',
-    //                data: values,
-    //                backgroundColor: [
-    //                    '#667eea',
-    //                    '#f6ad55',
-    //                    '#48bb78',
-    //                    '#ed64a6',
-    //                    '#38b2ac',
-    //                    '#9f7aea'
-    //                ],
-    //                borderRadius: 6,
-    //                borderWidth: 1
-    //            }]
-    //        },
-    //        options: {
-    //            responsive: true,
-    //            plugins: {
-    //                legend: { display: false }
-    //            },
-    //            scales: {
-    //                y: {
-    //                    beginAtZero: true,
-    //                    min: 0,
-    //                    max: maxValue,
-    //                    grace: 0,
-    //                    ticks: {
-    //                        stepSize: 1,
-    //                        autoSkip: false,
-    //                        precision: 0
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    });
-    //}
-
-
-    // Display table for current page
     function displayTable() {
 
-        allData.sort((a, b) => {
+        const formattedToday =
+            String(today.getDate()).padStart(2, '0') + "-" +
+            String(today.getMonth() + 1).padStart(2, '0') + "-" +
+            today.getFullYear();
+
+        // 🔹 Filter Today's Appointments
+        const todayAppointments = allData.filter(item => {
+            if (!item.DateTime) return false;
+
+            const appointmentDate = item.DateTime.split(" ")[0]; // remove time
+            return appointmentDate === formattedToday;
+        });
+
+        todayAppointments.sort((a, b) => {
             const timeA = new Date(`1970-01-01T${(a.Time || "").trim()}:00`);
             const timeB = new Date(`1970-01-01T${(b.Time || "").trim()}:00`);
             return timeA - timeB;
         });
 
 
+       
+
         const start = (currentPage - 1) * rowsPerPage;
         const end = start + rowsPerPage;
-        const pageData = allData.slice(start, end);
+        const pageData = todayAppointments.slice(start, end);
 
-        let bookedTimes = allData.map(item => item.Time); // get all booked times
+        let bookedTimes = todayAppointments.map(item => item.Time); // get all booked times
 
 
         let table = "";
@@ -364,6 +353,7 @@
             table += `<tr>
                   <td>${item.Name}</td>
                   <td>${item.Service}</td>
+                   <td>${item.DateTime}</td>
                   <td>${item.Time}</td>
                    <td>
                 ${mobile ? `
@@ -388,7 +378,27 @@
     document.addEventListener("DOMContentLoaded", loadData);
 
     function renderPagination() {
-        const totalPages = Math.ceil(allData.length / rowsPerPage);
+
+        const formattedToday =
+            String(today.getDate()).padStart(2, '0') + "-" +
+            String(today.getMonth() + 1).padStart(2, '0') + "-" +
+            today.getFullYear();
+
+        // 🔹 Filter Today's Appointments
+        const todayAppointments = allData.filter(item => {
+            if (!item.DateTime) return false;
+
+            const appointmentDate = item.DateTime.split(" ")[0]; // remove time
+            return appointmentDate === formattedToday;
+        });
+
+        todayAppointments.sort((a, b) => {
+            const timeA = new Date(`1970-01-01T${(a.Time || "").trim()}:00`);
+            const timeB = new Date(`1970-01-01T${(b.Time || "").trim()}:00`);
+            return timeA - timeB;
+        });
+
+        const totalPages = Math.ceil(todayAppointments.length / rowsPerPage);
         const pagination = document.getElementById("pagination");
 
         pagination.innerHTML = "";
@@ -461,6 +471,8 @@
         });
 
         document.getElementById("todayCount").innerText = todayAppointments.length;
+        document.getElementById("totalApponintment").innerText = todayAppointments.length;
+
         debugger;
         //last time
         if (!todayAppointments.length) {
@@ -469,7 +481,7 @@
         }
 
 
-        const latestTime = data.reduce((latest, item) => {
+        const latestTime = todayAppointments.reduce((latest, item) => {
             return item.Time > latest ? item.Time : latest;
         }, "00:00");
 
@@ -477,7 +489,64 @@
 
     }
 
+    function updateTodayDetails(bookings) {
+        let todayRevenue = 0;
+        let serviceCount = {};
+        let serviceRevenue = {};
 
+        const formattedToday =
+            String(today.getDate()).padStart(2, '0') + "-" +
+            String(today.getMonth() + 1).padStart(2, '0') + "-" +
+            today.getFullYear();
+
+        // 🔹 Filter Today's Appointments
+        const todayAppointments = bookings.filter(item => {
+            if (!item.DateTime) return false;
+
+            const appointmentDate = item.DateTime.split(" ")[0]; // remove time
+            return appointmentDate === formattedToday;
+        });
+
+        todayAppointments.forEach(item => {
+
+            // let serviceName = item.Service?.trim();
+            let serviceName = item.Service ? item.Service.trim() : null;
+
+            if (!serviceName || !servicePrices[serviceName]) return;
+            if (!serviceName) return;   // 🔥 SKIP EMPTY ROWS
+
+            let price = servicePrices[serviceName] || 0;
+
+            todayRevenue += price;
+
+            serviceCount[serviceName] = (serviceCount[serviceName] || 0) + 1;
+            serviceRevenue[serviceName] = (serviceRevenue[serviceName] || 0) + price;
+        });
+
+
+        // Revenue Card
+        document.getElementById("todayRevenue").innerText = "₹" + todayRevenue;
+
+
+        // Most Booked
+        if (Object.keys(serviceCount).length > 0) {
+            let todayMostBooked = Object.keys(serviceCount)
+                .reduce((a, b) => serviceCount[a] > serviceCount[b] ? a : b);
+
+            document.getElementById("todayMostBooked").innerText =
+                todayMostBooked + " (" + serviceCount[todayMostBooked] + ")";
+        }
+
+
+        // Highest Revenue Service
+        if (Object.keys(serviceRevenue).length > 0) {
+            let todayhighestRevenueService = Object.keys(serviceRevenue)
+                .reduce((a, b) => serviceRevenue[a] > serviceRevenue[b] ? a : b);
+
+            document.getElementById("todayhighestRevenueService").innerText =
+                todayhighestRevenueService + " (₹" + serviceRevenue[todayhighestRevenueService] + ")";
+        }
+    }
     function updateDashboard(bookings) {
         //console.log(bookings);
         let totalRevenue = 0;
@@ -516,13 +585,13 @@
         }
 
         // Highest Revenue Service
-        if (Object.keys(serviceRevenue).length > 0) {
-            let highestRevenueService = Object.keys(serviceRevenue)
-                .reduce((a, b) => serviceRevenue[a] > serviceRevenue[b] ? a : b);
+        //if (Object.keys(serviceRevenue).length > 0) {
+        //    let highestRevenueService = Object.keys(serviceRevenue)
+        //        .reduce((a, b) => serviceRevenue[a] > serviceRevenue[b] ? a : b);
 
-            document.getElementById("highestRevenueService").innerText =
-                highestRevenueService + " (₹" + serviceRevenue[highestRevenueService] + ")";
-        }
+        //    document.getElementById("highestRevenueService").innerText =
+        //        highestRevenueService + " (₹" + serviceRevenue[highestRevenueService] + ")";
+        //}
 
         // Average
         let avgValue = bookings.length > 0 ? totalRevenue / bookings.length : 0;
